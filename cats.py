@@ -1,5 +1,6 @@
 """Typing test implementation"""
 
+from os import read
 from utils import lower, split, remove_punctuation, lines_from_file
 from ucb import main, interact, trace
 from datetime import datetime
@@ -159,29 +160,24 @@ def autocorrect(typed_word, valid_words, diff_function, limit):
     """
     # BEGIN PROBLEM 5
     
-    min_val = diff_function(typed_word, valid_words[0], limit)
-    min_word = ""
+    min_word = valid_words[0]
+    min_diff = diff_function(typed_word, min_word, limit)
+
     for word in valid_words:
-        if typed_word == word:
-            return word
+        if word == typed_word:
+            return typed_word
+
         difference = diff_function(typed_word, word, limit)
-        if difference <= min_val:
-            min_val = difference
+        if difference < min_diff:
+            min_diff = difference
             min_word = word
 
-    if min_val > limit:
+    if min_diff > limit:
         return typed_word
     
-    count = 0
-    array_of_words = [diff_function(typed_word, word, limit) for word in valid_words]
-    for val in array_of_words:
-        if val == min_val:
-            count += 1
-    if count > 1:  #multiple minimums
-        return valid_words[0]
-    
     return min_word
-    # END PROBLEM 5
+    
+    # END PROBLEM 5 Test
 
 
 def feline_flips(start, goal, limit):
@@ -207,10 +203,21 @@ def feline_flips(start, goal, limit):
     5
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    
 
-    #non recursive implementation
-    start = split(start)
+    def helper(start, goal, limit, total):
+        if total > limit:
+            return total
+        if len(start) == 0 or len(goal) == 0:
+            return total + abs(len(start) - len(goal))
+        else:
+            if start[0] != goal[0]:
+                return helper(start[1:], goal[1:], limit, total + 1)
+            else:
+                return helper(start[1:], goal[1:], limit, total)
+
+    return helper(start, goal, limit, 0)
+
 
     # END PROBLEM 6
 
@@ -225,14 +232,58 @@ def minimum_mewtations(start, goal, limit):
         limit: a number representing an upper bound on the number of edits
 
     >>> big_limit = 10
-    >>> minimum_mewtations("cats", "scat", big_limit)       # cats -> scats -> scat
-    2
+    >>> minimum_mewtations("cats", "scat", big_limit)       # cats -> scats -> scat add then remove
+                                                            # cats -> cat -> scat remove then add
+    2 
     >>> minimum_mewtations("purng", "purring", big_limit)   # purng -> purrng -> purring
     2
     >>> minimum_mewtations("ckiteus", "kittens", big_limit) # ckiteus -> kiteus -> kitteus -> kittens
     3
     """
-    assert False, 'Remove this line'
+
+    """
+    Base case: 
+    
+    break: where the Sequences of letters that don't match
+    recurse until a character in the start word != character in the other word
+
+    "s" + "tar" --> "star"
+    add: start[0] != goal[0]: do goal[0] + start
+    adds a letter to the break
+    """
+    def add(start, goal):
+        if start[0] != goal[0]:
+            return add(goal[0] + start, goal)
+        elif start[1] == goal[0]:
+            return subtract(start[1:], goal)
+        else:
+            return add(start[1:], goal[1:])
+
+    def subtract(start, goal):
+        if start[0] != goal[0]:
+            if start[1] == goal[0]:
+                return subtract(start[1:], goal)
+            else:
+                return add(goal[0] + start, goal)
+        else:
+            return subtract(start[1:], goal[1:])
+
+    def substitute(start, goal):
+        add(start, goal)
+        subtract(start,goal)
+        return
+
+    """
+    # red, ted
+    Using add
+    start: red --> tred CHOP red --> ted
+    goal: ted --> ted CHOP ed
+
+    red --> ed --> ted
+
+    min(combinations(add, subtract, substitute))
+    """
+
 
     if ______________:  # Fill in the condition
         # BEGIN
@@ -245,11 +296,11 @@ def minimum_mewtations(start, goal, limit):
         # END
 
     else:
-        add = ...  # Fill in these lines
-        remove = ...
-        substitute = ...
+        add = minimum_mewtations(goal[0] + start, goal, limit) + 1  # Fill in these lines
+        remove = minimum_mewtations(start[1:], goal, limit) + 1
+        substitute = minimum_mewtations(goal[0] + start[1:], goal, limit) + 1
         # BEGIN
-        "*** YOUR CODE HERE ***"
+        return min(add, remove, substitute)
         # END
 
 
